@@ -6,7 +6,7 @@
 
 *Statistiques de connexion par domaine*
 
-<img src="https://img.shields.io/badge/Velocity-3.5.1-f2a900?style=for-the-badge" alt="Velocity 3.5.1"> <img src="https://img.shields.io/badge/Java-21-e76f00?style=for-the-badge" alt="Java 21"> <img src="https://img.shields.io/badge/SkyHand-Proxy-3aa655?style=for-the-badge" alt="SkyHand Proxy">
+<img src="https://img.shields.io/badge/Velocity-3.5.1-f2a900?style=for-the-badge" alt="Velocity 3.5.1"> <img src="https://img.shields.io/badge/Java-25-e76f00?style=for-the-badge" alt="Java 25"> <img src="https://img.shields.io/badge/SkyHand-Proxy-3aa655?style=for-the-badge" alt="SkyHand Proxy">
 
 </div>
 
@@ -20,7 +20,7 @@ Utilisé sur : **Proxy**.
 
 ## Compilation
 
-Java 21 et Maven :
+Java 25 et Maven :
 
 ```bash
 mvn clean package
