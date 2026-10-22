@@ -18,6 +18,10 @@ Statistiques de connexion par domaine
 
 Utilisé sur : **Proxy**.
 
+## Configuration
+
+Aucun fichier de configuration.
+
 ## Compilation
 
 Java 25 et Maven :
