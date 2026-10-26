@@ -15,8 +15,11 @@ import org.slf4j.Logger;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Plugin(
@@ -32,6 +35,9 @@ public class SHTrackDomains {
     private final ConcurrentHashMap<String, Integer> totalCount = new ConcurrentHashMap<>();
     // Nombre de connexions en cours par domaine (cles en minuscule)
     private final ConcurrentHashMap<String, Integer> onlineCount = new ConcurrentHashMap<>();
+    // Joueurs comptes dans onlineCount (par instance) : DisconnectEvent part aussi pour une connexion refusee
+    // avant PostLoginEvent ou chassee par un doublon, qui ne doit pas retirer un joueur jamais compte
+    private final Set<Player> tracked = Collections.synchronizedSet(Collections.newSetFromMap(new IdentityHashMap<>()));
 
     private final ProxyServer proxy;
     private final Logger logger;
@@ -69,7 +75,9 @@ public class SHTrackDomains {
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
-        dataManager.saveDataSync();
+        if (dataManager != null) {
+            dataManager.saveDataSync();
+        }
         logger.info("SHTrackDomains desactive !");
     }
 
@@ -88,8 +96,12 @@ public class SHTrackDomains {
      */
     void recalcOnlineCounts() {
         onlineCount.clear();
+        tracked.clear();
         for (Player player : proxy.getAllPlayers()) {
-            domainOf(player).ifPresent(domain -> onlineCount.merge(domain, 1, Integer::sum));
+            domainOf(player).ifPresent(domain -> {
+                tracked.add(player);
+                onlineCount.merge(domain, 1, Integer::sum);
+            });
         }
     }
 
@@ -97,12 +109,17 @@ public class SHTrackDomains {
     public void onPostLogin(PostLoginEvent event) {
         domainOf(event.getPlayer()).ifPresent(domain -> {
             totalCount.merge(domain, 1, Integer::sum);
-            onlineCount.merge(domain, 1, Integer::sum);
+            if (tracked.add(event.getPlayer())) {
+                onlineCount.merge(domain, 1, Integer::sum);
+            }
         });
     }
 
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
+        if (!tracked.remove(event.getPlayer())) {
+            return;
+        }
         domainOf(event.getPlayer())
             .ifPresent(domain -> onlineCount.computeIfPresent(domain, (k, v) -> (v > 1) ? v - 1 : null));
     }
