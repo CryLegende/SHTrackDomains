@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * Temps de jeu par joueur, jour et serveur (table sh_acq_playtime), pour les serveurs listes dans
@@ -32,12 +33,16 @@ final class PlaytimeTracker {
     private final Set<String> servers;
     private final AcquisitionStore store;
     private final ZoneId zone;
+    // Joueur encore connecte au proxy : un segment ouvert pour un joueur parti (evenements traites dans le
+    // desordre) est jete au lieu de compter 5 minutes a chaque passage
+    private final Predicate<UUID> online;
     private final Map<UUID, Segment> open = new ConcurrentHashMap<>();
 
-    PlaytimeTracker(Set<String> servers, AcquisitionStore store, ZoneId zone) {
+    PlaytimeTracker(Set<String> servers, AcquisitionStore store, ZoneId zone, Predicate<UUID> online) {
         this.servers = servers;
         this.store = store;
         this.zone = zone;
+        this.online = online;
     }
 
     boolean tracks(String server) {
@@ -68,6 +73,11 @@ final class PlaytimeTracker {
         List<Row> rows = new ArrayList<>();
         for (Map.Entry<UUID, Segment> entry : open.entrySet()) {
             Segment segment = entry.getValue();
+            if (!online.test(entry.getKey())) {
+                // Deconnexion traitee avant l'arrivee sur le serveur : temps inconnu, rien n'est compte
+                open.remove(entry.getKey(), segment);
+                continue;
+            }
             // replace() echoue si le joueur vient de changer de serveur ou de partir : ce segment-la est deja ecrit
             if (open.replace(entry.getKey(), segment, new Segment(segment.name(), segment.server(), now))) {
                 rows.addAll(split(segment, now));

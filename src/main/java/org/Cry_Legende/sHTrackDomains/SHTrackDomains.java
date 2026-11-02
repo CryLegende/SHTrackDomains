@@ -70,8 +70,12 @@ public class SHTrackDomains {
                 store = new AcquisitionStore(config, logger);
                 logger.info("Attribution des joueurs active ({} adresses connues).", config.sources.size());
                 if (!config.playtimeServers.isEmpty()) {
-                    playtime = new PlaytimeTracker(config.playtimeServers, store, ZoneId.systemDefault());
+                    playtime = new PlaytimeTracker(config.playtimeServers, store, ZoneId.systemDefault(),
+                        uuid -> proxy.getPlayer(uuid).isPresent());
                     logger.info("Temps de jeu mesure sur : {}.", String.join(", ", config.playtimeServers));
+                } else {
+                    logger.warn("Temps de jeu non mesure (temps-de-jeu.serveurs vide dans config.yml) : "
+                        + "les conditions de temps de jeu des createurs du site ne pourront pas etre remplies.");
                 }
             } else {
                 logger.info("Base desactivee dans config.yml : attribution des joueurs coupee.");
@@ -160,8 +164,9 @@ public class SHTrackDomains {
 
     @Subscribe
     public void onServerConnected(ServerConnectedEvent event) {
-        if (playtime != null) {
-            Player player = event.getPlayer();
+        Player player = event.getPlayer();
+        // Joueur deja parti (evenement traite apres sa deconnexion) : pas de segment qui ne serait jamais ferme
+        if (playtime != null && player.isActive()) {
             playtime.onServerConnected(player.getUniqueId(), player.getUsername(), event.getServer().getServerInfo().getName());
         }
     }

@@ -27,7 +27,12 @@ Utilisé sur : **Proxy**.
     connexions et jours distincts ;
   - `sh_acq_logins` : une ligne par connexion.
 - `<code>.skyhand.fr` sans entrée dans `sources` donne la source `<code>` : adresses de créateurs et de campagnes.
-  Liste des créateurs, page de statistiques et cadeau de première connexion : plugin `skyhandsite` du site.
+  Créateurs, campagnes, espace créateur et cadeau de première connexion : plugin `skyhandcreators` du site
+  (panel « Créateurs »).
+- `temps-de-jeu.serveurs` (3.1) : serveurs dont le temps de jeu est mesuré, par joueur et par jour, dans la table
+  `sh_acq_playtime` (`name`, `day`, `server`, `seconds`). Un segment s'ouvre à l'arrivée sur un de ces serveurs et
+  se ferme au changement de serveur ou à la déconnexion ; le temps en cours est écrit toutes les 5 minutes et à
+  l'arrêt du proxy. Liste vide : pas de mesure (avertissement au démarrage). `/shtd joueur <pseudo>` l'affiche.
 
 Commandes (permission `shtrackdomains.list`) :
 

@@ -9,7 +9,8 @@
 
 # Domaine de base : <code>.skyhand.fr (absent de « sources ») donne la source « <code> ».
 # C'est ce qui sert pour les créateurs (pseudo.skyhand.fr) et les campagnes ; la liste des créateurs,
-# leurs statistiques et le cadeau de première connexion sont gérés par le site (plugin skyhandsite).
+# leurs campagnes, leurs statistiques et le cadeau de première connexion sont gérés par le site
+# (plugin skyhandcreators, panel « Créateurs »).
 # Il faut l'enregistrement DNS générique *.skyhand.fr et « *.skyhand.fr » dans hostname-whitelist.
 domaine: skyhand.fr
 
