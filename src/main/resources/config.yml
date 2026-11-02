@@ -46,3 +46,10 @@ base-de-donnees:
   # Un compte AuthMe plus jeune que ça compte encore comme nouveau joueur
   # (inscription faite sur le site avant la première connexion).
   nouveau-joueur-heures: 168
+
+temps-de-jeu:
+  # Serveurs (noms de velocity.toml) dont on mesure le temps de jeu, par joueur et par jour, dans la
+  # table sh_acq_playtime. Le site s'en sert pour les conditions des créateurs (« au moins 60 minutes
+  # sur Opale dans les 14 premiers jours »). Liste vide ou clé absente : pas de mesure.
+  serveurs:
+    - opale

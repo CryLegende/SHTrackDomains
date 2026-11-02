@@ -10,8 +10,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * config.yml : adresses connues -> source, et acces a la base des statistiques d'acquisition.
@@ -30,6 +33,7 @@ final class PluginConfig {
     final String dbPassword;
     final String authmeTable;
     final int newPlayerWindowHours;
+    final Set<String> playtimeServers;
 
     private PluginConfig(Map<?, ?> root) {
         this.baseDomain = normalizeHost(String.valueOf(get(root, "domaine", "skyhand.fr")));
@@ -50,6 +54,19 @@ final class PluginConfig {
         this.authmeTable = table.matches("[A-Za-z0-9_]{1,64}") ? table : "authme";
         Object window = get(db, "nouveau-joueur-heures", 168);
         this.newPlayerWindowHours = window instanceof Number n ? Math.max(1, n.intValue()) : 168;
+
+        // Serveurs dont on mesure le temps de jeu (noms de velocity.toml) ; absent ou vide = pas de mesure
+        Map<?, ?> playtime = root.get("temps-de-jeu") instanceof Map<?, ?> pm ? pm : Map.of();
+        Set<String> servers = new LinkedHashSet<>();
+        if (playtime.get("serveurs") instanceof List<?> list) {
+            list.forEach(name -> {
+                String server = String.valueOf(name).trim().toLowerCase(Locale.ROOT);
+                if (server.matches("[a-z0-9_-]{1,32}")) {
+                    servers.add(server);
+                }
+            });
+        }
+        this.playtimeServers = Set.copyOf(servers);
     }
 
     static PluginConfig load(Path dataFolder, Logger logger) throws IOException {

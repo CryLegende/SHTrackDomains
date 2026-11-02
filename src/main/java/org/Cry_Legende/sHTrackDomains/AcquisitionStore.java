@@ -102,6 +102,40 @@ final class AcquisitionStore {
         }
     }
 
+    /**
+     * Ajoute du temps de jeu (PlaytimeTracker). Une ecriture ratee est perdue (log) : on ne la rejoue pas,
+     * pour ne jamais compter deux fois le meme temps si MariaDB avait en fait applique la requete.
+     */
+    void addPlaytime(List<PlaytimeTracker.Row> rows) {
+        // Deconnexions arrivees apres l'arret : PlaytimeTracker.closeAll() a deja tout ecrit
+        if (rows.isEmpty() || executor.isShutdown()) {
+            return;
+        }
+        executor.execute(() -> {
+            try (PreparedStatement ps = connection().prepareStatement(
+                "INSERT INTO sh_acq_playtime (name, day, server, seconds) VALUES (?, ?, ?, ?)"
+                    + " ON DUPLICATE KEY UPDATE seconds = seconds + VALUES(seconds)")) {
+                for (PlaytimeTracker.Row row : rows) {
+                    ps.setString(1, row.name());
+                    ps.setObject(2, row.day());
+                    ps.setString(3, row.server());
+                    ps.setLong(4, row.seconds());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            } catch (SQLException e) {
+                logger.warn("Temps de jeu non enregistre ({} ligne(s)) : {}", rows.size(), e.getMessage());
+                closeQuietly();
+            }
+        });
+    }
+
+    /** Temps de jeu d'un joueur par serveur suivi : total et 14 derniers jours, en minutes. */
+    CompletableFuture<List<String[]>> playtime(String username) {
+        return query("SELECT server, SUM(seconds) DIV 60, SUM(IF(day >= CURDATE() - INTERVAL 13 DAY, seconds, 0)) DIV 60"
+            + " FROM sh_acq_playtime WHERE name = ? GROUP BY server ORDER BY server", username.toLowerCase(Locale.ROOT));
+    }
+
     /** Nouveaux joueurs par source sur N jours : venus, inscrits, revenus un 2e jour, vus 3 jours ou plus. */
     CompletableFuture<List<String[]>> newPlayersBySource(int days) {
         return query("SELECT p.first_source, COUNT(*), SUM(a.username IS NOT NULL), SUM(p.days_seen >= 2), SUM(p.days_seen >= 3)"

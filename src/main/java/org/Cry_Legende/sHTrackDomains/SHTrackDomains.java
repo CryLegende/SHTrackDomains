@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Locale;
@@ -25,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Plugin(
     id = "shtrackdomains",
     name = "SHTrackDomains",
-    version = "3.0-velocity",
+    version = "3.1-velocity",
     description = "Statistiques de connexion et d'acquisition par domaine",
     authors = {"Cry_Legende"}
 )
@@ -47,6 +49,8 @@ public class SHTrackDomains {
     private PluginConfig config;
     // null si la base est desactivee ou config.yml illisible : seuls les compteurs de data.yml tournent
     private AcquisitionStore store;
+    // null sans base ou sans serveur dans « temps-de-jeu.serveurs »
+    private PlaytimeTracker playtime;
 
     @Inject
     public SHTrackDomains(ProxyServer proxy, Logger logger, @DataDirectory Path dataFolder) {
@@ -65,6 +69,10 @@ public class SHTrackDomains {
             if (config.databaseEnabled) {
                 store = new AcquisitionStore(config, logger);
                 logger.info("Attribution des joueurs active ({} adresses connues).", config.sources.size());
+                if (!config.playtimeServers.isEmpty()) {
+                    playtime = new PlaytimeTracker(config.playtimeServers, store, ZoneId.systemDefault());
+                    logger.info("Temps de jeu mesure sur : {}.", String.join(", ", config.playtimeServers));
+                }
             } else {
                 logger.info("Base desactivee dans config.yml : attribution des joueurs coupee.");
             }
@@ -86,12 +94,24 @@ public class SHTrackDomains {
             .delay(Duration.ofSeconds(300))
             .repeat(Duration.ofSeconds(300))
             .schedule();
+
+        // Temps de jeu des joueurs en ligne ecrit toutes les 5 minutes : un arret brutal en perd au plus 5
+        if (playtime != null) {
+            proxy.getScheduler().buildTask(this, playtime::checkpoint)
+                .delay(Duration.ofSeconds(300))
+                .repeat(Duration.ofSeconds(300))
+                .schedule();
+        }
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
         if (dataManager != null) {
             dataManager.saveDataSync();
+        }
+        // Avant store.shutdown() : les dernieres lignes passent par le fil SQL, qui finit ses ecritures
+        if (playtime != null) {
+            playtime.closeAll();
         }
         if (store != null) {
             store.shutdown();
@@ -139,7 +159,19 @@ public class SHTrackDomains {
     }
 
     @Subscribe
+    public void onServerConnected(ServerConnectedEvent event) {
+        if (playtime != null) {
+            Player player = event.getPlayer();
+            playtime.onServerConnected(player.getUniqueId(), player.getUsername(), event.getServer().getServerInfo().getName());
+        }
+    }
+
+    @Subscribe
     public void onDisconnect(DisconnectEvent event) {
+        // Avant le test « tracked » : un joueur peut etre sur Opale sans avoir de domaine (adresse absente)
+        if (playtime != null) {
+            playtime.onDisconnect(event.getPlayer().getUniqueId());
+        }
         if (!tracked.remove(event.getPlayer())) {
             return;
         }
@@ -165,5 +197,9 @@ public class SHTrackDomains {
 
     AcquisitionStore store() {
         return store;
+    }
+
+    PlaytimeTracker playtime() {
+        return playtime;
     }
 }

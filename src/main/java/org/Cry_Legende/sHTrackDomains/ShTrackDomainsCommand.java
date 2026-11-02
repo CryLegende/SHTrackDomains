@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Commande principale : /shtrackdomains &lt;list|reload|show&gt;
@@ -75,7 +76,12 @@ class ShTrackDomainsCommand implements SimpleCommand {
                     send(sender, "§7- Source : §e" + r[2] + " §8(" + r[1] + ", " + r[3] + ")");
                     send(sender, "§7- Derniere adresse : §f" + r[5] + " §8(" + r[6] + ")");
                     send(sender, "§7- Connexions : §e" + r[7] + " §7sur §e" + r[8] + " §7jour(s)");
-                }).exceptionally(e -> fail(sender, e));
+                }).thenCompose(ignored -> plugin.playtime() == null
+                    ? CompletableFuture.completedFuture(List.<String[]>of())
+                    : store.playtime(args[1])
+                ).thenAccept(rows -> rows.forEach(t -> send(sender,
+                    "§7- Temps sur §f" + t[0] + " §7: §e" + t[1] + " min §8(" + t[2] + " min sur 14 jours)")))
+                .exceptionally(e -> fail(sender, e));
             }
             case "list" -> {
                 if (!sender.hasPermission("shtrackdomains.list")) {

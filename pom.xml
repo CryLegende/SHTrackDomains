@@ -6,7 +6,7 @@
 
     <groupId>org.Cry_Legende</groupId>
     <artifactId>SHTrackDomains</artifactId>
-    <version>3.0-velocity</version>
+    <version>3.1-velocity</version>
     <packaging>jar</packaging>
 
     <name>SHTrackDomains</name>
