@@ -8,9 +8,9 @@
 # (direct.skyhand.fr, play-srv.skyhand.fr), sinon on ne peut plus les séparer.
 
 # Domaine de base : <code>.skyhand.fr (absent de « sources ») donne la source « <code> ».
-# C'est ce qui sert pour les créateurs (pseudo.skyhand.fr), les campagnes et le parrainage
-# (un joueur qui donne <son pseudo>.skyhand.fr à un ami). Il faut l'enregistrement DNS
-# générique *.skyhand.fr et « *.skyhand.fr » dans hostname-whitelist.
+# C'est ce qui sert pour les créateurs (pseudo.skyhand.fr) et les campagnes ; la liste des créateurs,
+# leurs statistiques et le cadeau de première connexion sont gérés par le site (plugin skyhandsite).
+# Il faut l'enregistrement DNS générique *.skyhand.fr et « *.skyhand.fr » dans hostname-whitelist.
 domaine: skyhand.fr
 
 # Adresse exacte -> nom de la source dans /shtd sources.
@@ -30,10 +30,6 @@ sources:
   # Clients qui ne suivent pas le SRV (launchers tiers)
   skyhand.fr: direct (skyhand.fr)
   play.skyhand.fr: play.skyhand.fr
-  # Site : adresse affichée selon la provenance du visiteur (plugin skyhandsite)
-  jouer.skyhand.fr: site
-  fr.skyhand.fr: site (Google, moteurs)
-  dc.skyhand.fr: site (Discord)
   # Anciennes adresses, gardées pour les joueurs qui les ont en favori
   dns.skyhand.fr: ancien SRV (skyhand.fr + play)
   site.skyhand.fr: ancienne adresse site

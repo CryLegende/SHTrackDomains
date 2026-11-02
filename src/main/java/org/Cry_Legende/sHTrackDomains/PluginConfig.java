@@ -91,7 +91,7 @@ final class PluginConfig {
 
     /**
      * Source d'une adresse : la table « sources », sinon le sous-domaine direct du domaine de base
-     * (code createur, campagne ou pseudo de parrain), sinon l'adresse elle-meme.
+     * (code createur ou campagne), sinon l'adresse elle-meme.
      */
     String sourceOf(String host) {
         String h = normalizeHost(host);

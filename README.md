@@ -26,15 +26,14 @@ Utilisé sur : **Proxy**.
     `new_player = 1` s'il n'avait pas de compte AuthMe (ou un compte de moins de `nouveau-joueur-heures`),
     connexions et jours distincts ;
   - `sh_acq_logins` : une ligne par connexion.
-- `<code>.skyhand.fr` sans entrée dans `sources` donne la source `<code>` : adresses de créateurs,
-  de campagnes, et parrainage (un joueur donne `<son pseudo>.skyhand.fr`).
+- `<code>.skyhand.fr` sans entrée dans `sources` donne la source `<code>` : adresses de créateurs et de campagnes.
+  Liste des créateurs, page de statistiques et cadeau de première connexion : plugin `skyhandsite` du site.
 
 Commandes (permission `shtrackdomains.list`) :
 
 | Commande | Effet |
 |---|---|
 | `/shtd sources [jours]` | nouveaux joueurs par source (venus, inscrits, revenus un 2e jour, vus 3 jours+) et connexions par source |
-| `/shtd parrains [jours]` | nouveaux joueurs venus par le `pseudo.skyhand.fr` d'un joueur inscrit |
 | `/shtd joueur <pseudo>` | source et historique d'un joueur |
 
 Le client Minecraft envoie la **cible** d'un enregistrement SRV, pas l'adresse tapée : deux adresses

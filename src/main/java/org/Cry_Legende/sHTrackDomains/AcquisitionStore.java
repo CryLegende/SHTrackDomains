@@ -116,15 +116,6 @@ final class AcquisitionStore {
             + " WHERE ts >= NOW() - INTERVAL ? DAY GROUP BY source ORDER BY 2 DESC LIMIT 25", days);
     }
 
-    /** Parrainage : nouveaux joueurs venus par <pseudo>.skyhand.fr d'un joueur deja inscrit. */
-    CompletableFuture<List<String[]>> referrals(int days) {
-        return query("SELECT p.first_source, COUNT(*), SUM(p.days_seen >= 2), SUM(p.days_seen >= 3)"
-            + " FROM sh_acq_players p JOIN " + config.authmeTable + " a ON a.username = p.first_source"
-            + " AND a.regdate < UNIX_TIMESTAMP(p.first_seen) * 1000"
-            + " WHERE p.new_player = 1 AND p.first_seen >= NOW() - INTERVAL ? DAY"
-            + " GROUP BY p.first_source ORDER BY 2 DESC LIMIT 20", days);
-    }
-
     /** Fiche d'un joueur. */
     CompletableFuture<List<String[]>> player(String username) {
         return query("SELECT display_name, first_host, first_source, first_seen, new_player, last_host, last_seen, logins, days_seen"

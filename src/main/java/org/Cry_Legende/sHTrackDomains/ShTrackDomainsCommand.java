@@ -56,20 +56,6 @@ class ShTrackDomainsCommand implements SimpleCommand {
                     return null;
                 }).exceptionally(e -> fail(sender, e));
             }
-            case "parrains" -> {
-                AcquisitionStore store = statsStore(sender);
-                if (store == null) {
-                    return;
-                }
-                int days = days(args, 1, 30);
-                store.referrals(days).thenAccept(rows -> {
-                    send(sender, PREFIX + "Parrains (pseudo.skyhand.fr), §b" + days + " §7jours §8(filleuls · revenus 2e jour · vus 3 jours+)");
-                    if (rows.isEmpty()) {
-                        send(sender, "§8  aucun filleul enregistre");
-                    }
-                    rows.forEach(r -> send(sender, "§7- §f" + r[0] + " §7: §e" + r[1] + " §7· §b" + r[2] + " §7· §d" + r[3]));
-                }).exceptionally(e -> fail(sender, e));
-            }
             case "joueur" -> {
                 AcquisitionStore store = statsStore(sender);
                 if (store == null) {
@@ -147,7 +133,7 @@ class ShTrackDomainsCommand implements SimpleCommand {
         }
     }
 
-    private static final String USAGE = "§cUsage: /shtd <list|show|sources|parrains|joueur|reload> [domaine|jours|pseudo]";
+    private static final String USAGE = "§cUsage: /shtd <list|show|sources|joueur|reload> [domaine|jours|pseudo]";
     private static final String PREFIX = "§7§l« §b§lSH §8§l» §7";
 
     // Statistiques d'acquisition : meme permission que /shtd list, et la base doit etre active
@@ -191,7 +177,7 @@ class ShTrackDomainsCommand implements SimpleCommand {
 
         if (args.length <= 1) {
             String query = args.length == 0 ? "" : args[0].toLowerCase(Locale.ROOT);
-            return List.of("list", "show", "sources", "parrains", "joueur", "reload").stream()
+            return List.of("list", "show", "sources", "joueur", "reload").stream()
                 .filter(s -> s.startsWith(query))
                 .toList();
         }
