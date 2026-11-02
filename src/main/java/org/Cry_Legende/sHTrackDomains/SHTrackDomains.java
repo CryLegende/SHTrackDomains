@@ -25,8 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Plugin(
     id = "shtrackdomains",
     name = "SHTrackDomains",
-    version = "2.0-velocity",
-    description = "Statistiques de connexion par domaine",
+    version = "3.0-velocity",
+    description = "Statistiques de connexion et d'acquisition par domaine",
     authors = {"Cry_Legende"}
 )
 public class SHTrackDomains {
@@ -44,6 +44,9 @@ public class SHTrackDomains {
     private final Path dataFolder;
 
     private DataManager dataManager;
+    private PluginConfig config;
+    // null si la base est desactivee ou config.yml illisible : seuls les compteurs de data.yml tournent
+    private AcquisitionStore store;
 
     @Inject
     public SHTrackDomains(ProxyServer proxy, Logger logger, @DataDirectory Path dataFolder) {
@@ -56,6 +59,18 @@ public class SHTrackDomains {
     public void onProxyInitialize(ProxyInitializeEvent event) {
         dataManager = new DataManager(dataFolder, logger, totalCount);
         dataManager.loadData();
+
+        try {
+            config = PluginConfig.load(dataFolder, logger);
+            if (config.databaseEnabled) {
+                store = new AcquisitionStore(config, logger);
+                logger.info("Attribution des joueurs active ({} adresses connues).", config.sources.size());
+            } else {
+                logger.info("Base desactivee dans config.yml : attribution des joueurs coupee.");
+            }
+        } catch (Exception e) {
+            logger.error("config.yml illisible : attribution des joueurs coupee, compteurs conserves", e);
+        }
 
         recalcOnlineCounts();
 
@@ -77,6 +92,9 @@ public class SHTrackDomains {
     public void onProxyShutdown(ProxyShutdownEvent event) {
         if (dataManager != null) {
             dataManager.saveDataSync();
+        }
+        if (store != null) {
+            store.shutdown();
         }
         logger.info("SHTrackDomains desactive !");
     }
@@ -107,12 +125,17 @@ public class SHTrackDomains {
 
     @Subscribe
     public void onPostLogin(PostLoginEvent event) {
-        domainOf(event.getPlayer()).ifPresent(domain -> {
+        Player player = event.getPlayer();
+        domainOf(player).ifPresent(domain -> {
             totalCount.merge(domain, 1, Integer::sum);
-            if (tracked.add(event.getPlayer())) {
+            if (tracked.add(player)) {
                 onlineCount.merge(domain, 1, Integer::sum);
             }
         });
+        if (store != null) {
+            String host = PluginConfig.normalizeHost(domainOf(player).orElse(""));
+            store.recordLogin(player.getUsername(), player.getUniqueId().toString(), host, config.sourceOf(host));
+        }
     }
 
     @Subscribe
@@ -138,5 +161,9 @@ public class SHTrackDomains {
 
     DataManager dataManager() {
         return dataManager;
+    }
+
+    AcquisitionStore store() {
+        return store;
     }
 }

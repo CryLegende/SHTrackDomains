@@ -18,9 +18,35 @@ Statistiques de connexion par domaine
 
 Utilisé sur : **Proxy**.
 
+## Fonctionnement
+
+- `data.yml` : compteur de connexions par adresse (`/shtd list`, `/shtd show <adresse>`), comme en 2.0.
+- Depuis la 3.0, chaque connexion est aussi écrite dans MariaDB (base `Global`) :
+  - `sh_acq_players` : une ligne par pseudo, avec l'adresse et la **source de sa première connexion**,
+    `new_player = 1` s'il n'avait pas de compte AuthMe (ou un compte de moins de `nouveau-joueur-heures`),
+    connexions et jours distincts ;
+  - `sh_acq_logins` : une ligne par connexion.
+- `<code>.skyhand.fr` sans entrée dans `sources` donne la source `<code>` : adresses de créateurs,
+  de campagnes, et parrainage (un joueur donne `<son pseudo>.skyhand.fr`).
+
+Commandes (permission `shtrackdomains.list`) :
+
+| Commande | Effet |
+|---|---|
+| `/shtd sources [jours]` | nouveaux joueurs par source (venus, inscrits, revenus un 2e jour, vus 3 jours+) et connexions par source |
+| `/shtd parrains [jours]` | nouveaux joueurs venus par le `pseudo.skyhand.fr` d'un joueur inscrit |
+| `/shtd joueur <pseudo>` | source et historique d'un joueur |
+
+Le client Minecraft envoie la **cible** d'un enregistrement SRV, pas l'adresse tapée : deux adresses
+qui partagent une cible SRV ne se distinguent plus. Chaque adresse publique a donc sa propre cible.
+
 ## Configuration
 
-Aucun fichier de configuration.
+`config.yml` (créé au premier démarrage, chaque clé y est documentée) :
+`domaine`, `sources` (adresse → nom de source) et `base-de-donnees`
+(`actif`, `url`, `utilisateur`, `mot-de-passe`, `table-authme`, `nouveau-joueur-heures`).
+Tables : `schema.sql` dans `/skyhand/_staging-acquisition/`. L'utilisateur MariaDB `shtrackdomains`
+n'a que `SELECT/INSERT/UPDATE` sur ces tables et `SELECT (username, regdate)` sur `authme`.
 
 ## Compilation
 

@@ -1,0 +1,52 @@
+# SHTrackDomains — d'où viennent les joueurs
+#
+# Chaque connexion est rattachée à une « source » d'après l'adresse tapée par le joueur
+# (l'adresse vue par le proxy). La première connexion d'un pseudo fixe sa source pour toujours.
+#
+# Attention aux enregistrements SRV : le client Minecraft envoie la CIBLE du SRV, pas l'adresse
+# tapée. skyhand.fr et play.skyhand.fr doivent donc pointer vers des cibles distinctes
+# (direct.skyhand.fr, play-srv.skyhand.fr), sinon on ne peut plus les séparer.
+
+# Domaine de base : <code>.skyhand.fr (absent de « sources ») donne la source « <code> ».
+# C'est ce qui sert pour les créateurs (pseudo.skyhand.fr), les campagnes et le parrainage
+# (un joueur qui donne <son pseudo>.skyhand.fr à un ami). Il faut l'enregistrement DNS
+# générique *.skyhand.fr et « *.skyhand.fr » dans hostname-whitelist.
+domaine: skyhand.fr
+
+# Adresse exacte -> nom de la source dans /shtd sources.
+sources:
+  # Listes de serveurs (une adresse par liste, celle affichée sur la fiche)
+  mc1.skyhand.fr: liste-serveurs-minecraft.org
+  mc2.skyhand.fr: top-serveurs.net
+  mc3.skyhand.fr: serveur-minecraft.com
+  mc4.skyhand.fr: serveursminecraft.org
+  mc5.skyhand.fr: serveurliste.com
+  mc6.skyhand.fr: serveur-prive.net
+  mc7.skyhand.fr: mcclassement.fr
+  # Cibles SRV des adresses courtes
+  direct.skyhand.fr: direct (skyhand.fr)
+  play-srv.skyhand.fr: play.skyhand.fr
+  mc-srv.skyhand.fr: mc.skyhand.fr
+  # Clients qui ne suivent pas le SRV (launchers tiers)
+  skyhand.fr: direct (skyhand.fr)
+  play.skyhand.fr: play.skyhand.fr
+  # Site : adresse affichée selon la provenance du visiteur (plugin skyhandsite)
+  jouer.skyhand.fr: site
+  fr.skyhand.fr: site (Google, moteurs)
+  dc.skyhand.fr: site (Discord)
+  # Anciennes adresses, gardées pour les joueurs qui les ont en favori
+  dns.skyhand.fr: ancien SRV (skyhand.fr + play)
+  site.skyhand.fr: ancienne adresse site
+  127.0.0.1: local
+
+base-de-donnees:
+  # false : seuls les compteurs de data.yml (/shtd list) fonctionnent.
+  actif: true
+  url: jdbc:mariadb://127.0.0.1:3306/Global
+  utilisateur: shtrackdomains
+  mot-de-passe: CHANGE_ME
+  # Table AuthMe (même base) : sert à savoir si un pseudo est nouveau.
+  table-authme: authme
+  # Un compte AuthMe plus jeune que ça compte encore comme nouveau joueur
+  # (inscription faite sur le site avant la première connexion).
+  nouveau-joueur-heures: 168
