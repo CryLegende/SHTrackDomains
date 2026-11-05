@@ -62,7 +62,7 @@ class ShTrackDomainsCommand implements SimpleCommand {
                 if (store == null) {
                     return;
                 }
-                if (args.length < 2 || !args[1].matches("\\w{1,16}")) {
+                if (args.length < 2 || !args[1].matches("\.?\w{1,16}")) {
                     send(sender, "§cUsage: /shtd joueur <pseudo>");
                     return;
                 }
