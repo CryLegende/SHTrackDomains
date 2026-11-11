@@ -3,6 +3,21 @@
 # Chaque connexion est rattachée à une « source » d'après l'adresse tapée par le joueur
 # (l'adresse vue par le proxy). La première connexion d'un pseudo fixe sa source pour toujours.
 #
+# Commandes (alias /shtd ; les textes sont dans messages.yml) :
+#   /shtrackdomains list                 Domaines utilisés, joueurs en ligne et connexions au total.
+#   /shtrackdomains show <domaine>       Joueurs connectés via ce domaine.
+#   /shtrackdomains sources [jours]      Nouveaux joueurs et connexions par source (30 jours par défaut).
+#   /shtrackdomains player <pseudo>      Source, historique et temps de jeu d'un joueur (ancien nom : joueur).
+#   /shtrackdomains reload               Relit config.yml et messages.yml. Appliqué tout de suite : domaine, sources,
+#                                        table-authme, nouveau-joueur-heures. Demande un redémarrage du proxy :
+#                                        base-de-donnees (actif, url, utilisateur, mot-de-passe) et temps-de-jeu.serveurs.
+#                                        data.yml (compteurs) n'est jamais relu.
+#
+# Permissions (LuckPerms du proxy) : shtrackdomains.admin.<sous-commande> pour une sous-commande, ou
+# shtrackdomains.admin pour toutes :
+#   shtrackdomains.admin.list, shtrackdomains.admin.show, shtrackdomains.admin.sources, shtrackdomains.admin.player,
+#   shtrackdomains.admin.reload
+#
 # Attention aux enregistrements SRV : le client Minecraft envoie la CIBLE du SRV, pas l'adresse
 # tapée. skyhand.fr et play.skyhand.fr doivent donc pointer vers des cibles distinctes
 # (direct.skyhand.fr, play-srv.skyhand.fr), sinon on ne peut plus les séparer.

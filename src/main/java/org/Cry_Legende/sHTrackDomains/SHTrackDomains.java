@@ -13,12 +13,15 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -27,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Plugin(
     id = "shtrackdomains",
     name = "SHTrackDomains",
-    version = "3.1-velocity",
+    version = "3.2-velocity",
     description = "Statistiques de connexion et d'acquisition par domaine",
     authors = {"Cry_Legende"}
 )
@@ -46,7 +49,9 @@ public class SHTrackDomains {
     private final Path dataFolder;
 
     private DataManager dataManager;
-    private PluginConfig config;
+    // Remplacés d'un bloc par /shtrackdomains reload
+    private volatile PluginConfig config;
+    private volatile Messages messages;
     // null si la base est desactivee ou config.yml illisible : seuls les compteurs de data.yml tournent
     private AcquisitionStore store;
     // null sans base ou sans serveur dans « temps-de-jeu.serveurs »
@@ -63,6 +68,7 @@ public class SHTrackDomains {
     public void onProxyInitialize(ProxyInitializeEvent event) {
         dataManager = new DataManager(dataFolder, logger, totalCount);
         dataManager.loadData();
+        messages = Messages.loadOrDefaults(dataFolder, logger);
 
         try {
             config = PluginConfig.load(dataFolder, logger);
@@ -106,6 +112,55 @@ public class SHTrackDomains {
                 .repeat(Duration.ofSeconds(300))
                 .schedule();
         }
+    }
+
+    /**
+     * Résultat de /shtrackdomains reload : le fichier illisible et l'erreur (rien n'a changé), ou la liste des réglages
+     * modifiés qui ne se relisent qu'au démarrage du proxy.
+     */
+    record ReloadResult(String file, String error, List<String> restart) {
+    }
+
+    /**
+     * Relit config.yml et messages.yml, lus tous les deux avant que quoi que ce soit change. Le domaine, les sources, la
+     * table AuthMe, la fenêtre des nouveaux joueurs et les textes sont repris tout de suite ; la base de données et les
+     * serveurs de temps de jeu ne se relisent qu'au démarrage. data.yml n'est pas relu : les compteurs en mémoire font foi.
+     */
+    ReloadResult reload() {
+        PluginConfig fresh;
+        try {
+            fresh = PluginConfig.load(dataFolder, logger);
+        } catch (IOException | RuntimeException e) {
+            return failed("config.yml", e);
+        }
+        Messages freshMessages;
+        try {
+            freshMessages = Messages.load(dataFolder, logger);
+        } catch (IOException | RuntimeException e) {
+            return failed("messages.yml", e);
+        }
+        PluginConfig old = config;
+        config = fresh;
+        messages = freshMessages;
+        if (store != null) {
+            store.useSettings(fresh);
+        }
+        List<String> restart = new ArrayList<>();
+        if (old != null) {
+            if (old.databaseEnabled != fresh.databaseEnabled) restart.add("base-de-donnees.actif");
+            if (!old.jdbcUrl.equals(fresh.jdbcUrl)) restart.add("base-de-donnees.url");
+            if (!old.dbUser.equals(fresh.dbUser)) restart.add("base-de-donnees.utilisateur");
+            if (!old.dbPassword.equals(fresh.dbPassword)) restart.add("base-de-donnees.mot-de-passe");
+            if (!old.playtimeServers.equals(fresh.playtimeServers)) restart.add("temps-de-jeu.serveurs");
+        }
+        logger.info("Configuration et messages rechargés ({} adresses connues).", fresh.sources.size());
+        return new ReloadResult(null, null, List.copyOf(restart));
+    }
+
+    private ReloadResult failed(String file, Exception e) {
+        String error = String.valueOf(e.getMessage()).replace("&", "").replaceAll("\\s+", " ").trim();
+        logger.warn("{} illisible, configuration inchangee : {}", file, error);
+        return new ReloadResult(file, error, List.of());
     }
 
     @Subscribe
@@ -182,6 +237,10 @@ public class SHTrackDomains {
         }
         domainOf(event.getPlayer())
             .ifPresent(domain -> onlineCount.computeIfPresent(domain, (k, v) -> (v > 1) ? v - 1 : null));
+    }
+
+    Messages messages() {
+        return messages;
     }
 
     ProxyServer proxy() {

@@ -26,7 +26,10 @@ import java.util.concurrent.TimeUnit;
  */
 final class AcquisitionStore {
 
+    // Connexion à la base : réglages du démarrage
     private final PluginConfig config;
+    // Table AuthMe et fenêtre des nouveaux joueurs : remplacés par /shtrackdomains reload
+    private volatile PluginConfig live;
     private final Logger logger;
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, "SHTrackDomains-DB");
@@ -39,7 +42,13 @@ final class AcquisitionStore {
 
     AcquisitionStore(PluginConfig config, Logger logger) {
         this.config = config;
+        this.live = config;
         this.logger = logger;
+    }
+
+    /** Reprend les réglages relus de config.yml qui ne demandent pas de nouvelle connexion. */
+    void useSettings(PluginConfig settings) {
+        this.live = settings;
     }
 
     /**
@@ -64,11 +73,11 @@ final class AcquisitionStore {
         Timestamp ts = Timestamp.valueOf(now);
 
         boolean newPlayer = true;
-        try (PreparedStatement ps = c.prepareStatement("SELECT regdate FROM " + config.authmeTable + " WHERE username = ?")) {
+        try (PreparedStatement ps = c.prepareStatement("SELECT regdate FROM " + live.authmeTable + " WHERE username = ?")) {
             ps.setString(1, key);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    long windowStart = System.currentTimeMillis() - config.newPlayerWindowHours * 3_600_000L;
+                    long windowStart = System.currentTimeMillis() - live.newPlayerWindowHours * 3_600_000L;
                     newPlayer = rs.getLong(1) >= windowStart;
                 }
             }
@@ -139,7 +148,7 @@ final class AcquisitionStore {
     /** Nouveaux joueurs par source sur N jours : venus, inscrits, revenus un 2e jour, vus 3 jours ou plus. */
     CompletableFuture<List<String[]>> newPlayersBySource(int days) {
         return query("SELECT p.first_source, COUNT(*), SUM(a.username IS NOT NULL), SUM(p.days_seen >= 2), SUM(p.days_seen >= 3)"
-            + " FROM sh_acq_players p LEFT JOIN " + config.authmeTable + " a ON a.username = p.name"
+            + " FROM sh_acq_players p LEFT JOIN " + live.authmeTable + " a ON a.username = p.name"
             + " WHERE p.new_player = 1 AND p.first_seen >= NOW() - INTERVAL ? DAY"
             + " GROUP BY p.first_source ORDER BY 2 DESC LIMIT 25", days);
     }

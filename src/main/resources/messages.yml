@@ -1,0 +1,54 @@
+# ----------------------------------------------------------------#
+#                   Messages de SHTrackDomains                    #
+# ----------------------------------------------------------------#
+#
+# Codes couleur &. Format SkyHand : préfixe de la couleur du type, texte en &7, mots importants en couleur.
+# {prefix} est remplacé par le texte de la clé prefix ; {nom} par la valeur indiquée dans le commentaire de chaque
+# message. Ce fichier est relu par /shtrackdomains reload ; une clé absente reprend le texte livré avec le plugin.
+
+prefix: '&7&l« &b&lSH &8&l» &7'
+
+no-permission: '&cVous n''avez pas la permission.'
+
+# /shtrackdomains sans argument, ou avec une sous-commande inconnue. {subcommands} : celles que l'expéditeur peut utiliser
+usage: '&cUsage: /shtrackdomains <{subcommands}> [domaine|jours|pseudo]'
+usage-show: '&cUsage: /shtrackdomains show <domaine>'
+usage-player: '&cUsage: /shtrackdomains player <pseudo>'
+
+# /shtrackdomains list. {domain}, {online} : joueurs en ligne, {total} : connexions au total
+list-header: '&aListe des domaines utilisés :'
+list-empty: '&eAucun domaine n''a encore été enregistré.'
+list-row: '&7- &f{domain} &7: &e{online} &aen ligne, &e{total} &aau total'
+
+# /shtrackdomains show. {domain}, {player}
+show-header: '&aJoueurs connectés via &f{domain} &a:'
+show-none: '&eAucun joueur n''est connecté via le domaine &f{domain}&e.'
+show-row: '&7- &f{player}'
+
+# /shtrackdomains sources. {days}, {source}, {new} : venus, {registered} : inscrits, {returned} : revenus un 2e jour,
+# {percent}, {seen} : vus 3 jours et plus, {logins} : connexions, {players} : joueurs distincts
+sources-header: '{prefix}Nouveaux joueurs par source, &b{days} &7jours &8(venus · inscrits · revenus 2e jour · vus 3 jours+)'
+sources-empty: '&8  aucun nouveau joueur enregistre'
+sources-row: '&7- &f{source} &7: &e{new} &7· &a{registered} &7· &b{returned} &8({percent}) &7· &d{seen}'
+sources-logins-header: '{prefix}Connexions par source &8(connexions · joueurs distincts)'
+sources-logins-row: '&7- &f{source} &7: &e{logins} &7· &a{players}'
+
+# /shtrackdomains player. {player}, {source}, {host}, {date}, {last-host}, {last-date}, {logins}, {days},
+# {server}, {minutes}, {minutes-14}
+player-none: '{prefix}Aucune connexion enregistree pour &f{player}&7.'
+player-new: '{prefix}&f{player} &a(nouveau joueur)'
+player-known: '{prefix}&f{player} &8(deja inscrit au premier passage)'
+player-source: '&7- Source : &e{source} &8({host}, {date})'
+player-last: '&7- Derniere adresse : &f{host} &8({date})'
+player-logins: '&7- Connexions : &e{logins} &7sur &e{days} &7jour(s)'
+player-time: '&7- Temps sur &f{server} &7: &e{minutes} min &8({minutes-14} min sur 14 jours)'
+
+# La base est coupée (base-de-donnees.actif: false), ou une requête échoue. {error}
+database-disabled: '{prefix}Base desactivee : voir &fbase-de-donnees &7dans config.yml.'
+database-error: '{prefix}&cErreur de base : &7{error}'
+
+# /shtrackdomains reload. {file} : fichier illisible, {error} : cause (l'ancienne configuration reste en place),
+# {keys} : réglages qui ne se relisent qu'au démarrage du proxy
+reload-done: '{prefix}&aConfiguration et messages rechargés.'
+reload-error: '{prefix}&cRechargement annulé, {file} est illisible : {error}'
+reload-restart: '{prefix}&6Redémarrage du proxy nécessaire pour : &f{keys}&6.'

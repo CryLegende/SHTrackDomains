@@ -20,7 +20,7 @@ Utilisé sur : **Proxy**.
 
 ## Fonctionnement
 
-- `data.yml` : compteur de connexions par adresse (`/shtd list`, `/shtd show <adresse>`), comme en 2.0.
+- `data.yml` : compteur de connexions par adresse (`/shtrackdomains list`, `/shtrackdomains show <adresse>`), comme en 2.0.
 - Depuis la 3.0, chaque connexion est aussi écrite dans MariaDB (base `Global`) :
   - `sh_acq_players` : une ligne par pseudo, avec l'adresse et la **source de sa première connexion**,
     `new_player = 1` s'il n'avait pas de compte AuthMe (ou un compte de moins de `nouveau-joueur-heures`),
@@ -32,14 +32,19 @@ Utilisé sur : **Proxy**.
 - `temps-de-jeu.serveurs` (3.1) : serveurs dont le temps de jeu est mesuré, par joueur et par jour, dans la table
   `sh_acq_playtime` (`name`, `day`, `server`, `seconds`). Un segment s'ouvre à l'arrivée sur un de ces serveurs et
   se ferme au changement de serveur ou à la déconnexion ; le temps en cours est écrit toutes les 5 minutes et à
-  l'arrêt du proxy. Liste vide : pas de mesure (avertissement au démarrage). `/shtd joueur <pseudo>` l'affiche.
+  l'arrêt du proxy. Liste vide : pas de mesure (avertissement au démarrage). `/shtrackdomains player <pseudo>` l'affiche.
 
-Commandes (permission `shtrackdomains.list`) :
+Commandes (alias `/shtd`), chacune avec sa permission `shtrackdomains.admin.<sous-commande>` ; `shtrackdomains.admin` les donne toutes (LuckPerms du proxy) :
 
-| Commande | Effet |
-|---|---|
-| `/shtd sources [jours]` | nouveaux joueurs par source (venus, inscrits, revenus un 2e jour, vus 3 jours+) et connexions par source |
-| `/shtd joueur <pseudo>` | source et historique d'un joueur |
+| Commande | Permission | Effet |
+|---|---|---|
+| `/shtrackdomains list` | `shtrackdomains.admin.list` | domaines utilisés, joueurs en ligne et connexions au total |
+| `/shtrackdomains show <domaine>` | `shtrackdomains.admin.show` | joueurs connectés via ce domaine |
+| `/shtrackdomains sources [jours]` | `shtrackdomains.admin.sources` | nouveaux joueurs par source (venus, inscrits, revenus un 2e jour, vus 3 jours+) et connexions par source |
+| `/shtrackdomains player <pseudo>` (ancien nom `joueur`) | `shtrackdomains.admin.player` | source, historique et temps de jeu d'un joueur |
+| `/shtrackdomains reload` | `shtrackdomains.admin.reload` | relit `config.yml` et `messages.yml` ; la base de données et `temps-de-jeu.serveurs` demandent un redémarrage du proxy ; `data.yml` n'est jamais relu |
+
+Les textes sont dans `messages.yml` (créé au premier démarrage).
 
 Le client Minecraft envoie la **cible** d'un enregistrement SRV, pas l'adresse tapée : deux adresses
 qui partagent une cible SRV ne se distinguent plus. Chaque adresse publique a donc sa propre cible.
