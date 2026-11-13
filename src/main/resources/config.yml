@@ -19,43 +19,32 @@
 #   shtrackdomains.admin.reload
 #
 # Attention aux enregistrements SRV : le client Minecraft envoie la CIBLE du SRV, pas l'adresse
-# tapée. skyhand.fr et play.skyhand.fr doivent donc pointer vers des cibles distinctes
-# (direct.skyhand.fr, play-srv.skyhand.fr), sinon on ne peut plus les séparer.
+# tapée. example.com et play.example.com doivent donc pointer vers des cibles distinctes
+# (direct.example.com, play-srv.example.com), sinon on ne peut plus les séparer.
 
-# Domaine de base : <code>.skyhand.fr (absent de « sources ») donne la source « <code> ».
-# C'est ce qui sert pour les créateurs (pseudo.skyhand.fr) et les campagnes ; la liste des créateurs,
+# Domaine de base : <code>.example.com (absent de « sources ») donne la source « <code> ».
+# C'est ce qui sert pour les créateurs (pseudo.example.com) et les campagnes ; la liste des créateurs,
 # leurs campagnes, leurs statistiques et le cadeau de première connexion sont gérés par le site
 # (plugin skyhandcreators, panel « Créateurs »).
-# Il faut l'enregistrement DNS générique *.skyhand.fr et « *.skyhand.fr » dans hostname-whitelist.
-domaine: skyhand.fr
+# Il faut l'enregistrement DNS générique *.example.com et « *.example.com » dans hostname-whitelist.
+domaine: example.com
 
 # Adresse exacte -> nom de la source dans /shtd sources.
 sources:
   # Listes de serveurs (une adresse par liste, celle affichée sur la fiche)
-  mc1.skyhand.fr: liste-serveurs-minecraft.org
-  mc2.skyhand.fr: top-serveurs.net
-  mc3.skyhand.fr: serveur-minecraft.com
-  mc4.skyhand.fr: serveursminecraft.org
-  mc5.skyhand.fr: serveurliste.com
-  mc6.skyhand.fr: serveur-prive.net
-  mc7.skyhand.fr: mcclassement.fr
+  mc1.example.com: liste-serveurs-exemple.org
   # Cibles SRV des adresses courtes
-  direct.skyhand.fr: direct (skyhand.fr)
-  play-srv.skyhand.fr: play.skyhand.fr
-  mc-srv.skyhand.fr: mc.skyhand.fr
+  direct.example.com: direct (example.com)
+  play-srv.example.com: play.example.com
   # Clients qui ne suivent pas le SRV (launchers tiers)
-  skyhand.fr: direct (skyhand.fr)
-  play.skyhand.fr: play.skyhand.fr
-  # Anciennes adresses, gardées pour les joueurs qui les ont en favori
-  dns.skyhand.fr: ancien SRV (skyhand.fr + play)
-  site.skyhand.fr: ancienne adresse site
+  example.com: direct (example.com)
   127.0.0.1: local
 
 base-de-donnees:
   # false : seuls les compteurs de data.yml (/shtd list) fonctionnent.
   actif: true
-  url: jdbc:mariadb://127.0.0.1:3306/Global
-  utilisateur: shtrackdomains
+  url: jdbc:mariadb://127.0.0.1:3306/minecraft
+  utilisateur: minecraft
   mot-de-passe: CHANGE_ME
   # Table AuthMe (même base) : sert à savoir si un pseudo est nouveau.
   table-authme: authme
@@ -66,6 +55,6 @@ base-de-donnees:
 temps-de-jeu:
   # Serveurs (noms de velocity.toml) dont on mesure le temps de jeu, par joueur et par jour, dans la
   # table sh_acq_playtime. Le site s'en sert pour les conditions des créateurs (« au moins 60 minutes
-  # sur Opale dans les 14 premiers jours »). Liste vide ou clé absente : pas de mesure.
+  # sur survie dans les 14 premiers jours »). Liste vide ou clé absente : pas de mesure.
   serveurs:
-    - opale
+    - survie

@@ -21,12 +21,12 @@ Utilisé sur : **Proxy**.
 ## Fonctionnement
 
 - `data.yml` : compteur de connexions par adresse (`/shtrackdomains list`, `/shtrackdomains show <adresse>`), comme en 2.0.
-- Depuis la 3.0, chaque connexion est aussi écrite dans MariaDB (base `Global`) :
+- Depuis la 3.0, chaque connexion est aussi écrite dans MariaDB (base de `base-de-donnees.url`) :
   - `sh_acq_players` : une ligne par pseudo, avec l'adresse et la **source de sa première connexion**,
     `new_player = 1` s'il n'avait pas de compte AuthMe (ou un compte de moins de `nouveau-joueur-heures`),
     connexions et jours distincts ;
   - `sh_acq_logins` : une ligne par connexion.
-- `<code>.skyhand.fr` sans entrée dans `sources` donne la source `<code>` : adresses de créateurs et de campagnes.
+- `<code>.example.com` sans entrée dans `sources` donne la source `<code>` : adresses de créateurs et de campagnes.
   Créateurs, campagnes, espace créateur et cadeau de première connexion : plugin `skyhandcreators` du site
   (panel « Créateurs »).
 - `temps-de-jeu.serveurs` (3.1) : serveurs dont le temps de jeu est mesuré, par joueur et par jour, dans la table
